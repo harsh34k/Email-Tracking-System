@@ -5,7 +5,7 @@ import Track from '../model/track-model';
 // Create a function to generate the HTML with tracking pixel
 const generateEmailHtml = (targetEmail: string, trackingId: string): string => {
     const encodedEmail = encodeURIComponent(targetEmail);
-    const trackingUrl = `${process.env.BASE_URL}/track-mail/${trackingId}?email=${encodedEmail}`;
+    const trackingUrl = `${process.env.BASE_URL}/track/track-mail/${trackingId}?email=${encodedEmail}`;
     return `<div>
 <img src="${trackingUrl}" alt="Tracking Pixel" style="display: none;"/>
 </div>`;
