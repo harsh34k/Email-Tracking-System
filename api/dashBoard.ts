@@ -4,7 +4,7 @@ import Track from '../model/track-model';
 const app = new Hono();
 
 // Endpoint to get all tracking records for the dashboard
-app.get('/dashboard', async (c) => {
+app.get('/me', async (c) => {
     try {
         // Fetch all tracking records from the database
         const tracks = await Track.find({});

@@ -27,7 +27,7 @@ app.post('/send-mail', async (c) => {
     // Generate tracking ID and store in the database
     const trackingId = uuid();
     try {
-        await Track.create({ trackingId });
+        await Track.create({ trackingId, userActions: [{ email: targetEmail, ip: '' }] });
 
         // Generate HTML with tracking pixel
         const htmlContent = generateEmailHtml(targetEmail, trackingId);
