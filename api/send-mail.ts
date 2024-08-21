@@ -1,61 +1,45 @@
-// import { Hono } from 'hono'
-// import { v4 as uuid } from "uuid"
-// import Track from '../model/track-model';
-// import { sendMail } from '../utils/sendMail';
-// const app = new Hono()
-
-// app.post('/send-mail', async (c) => {
-//     const { email, password } = await c.req.json();
-//     //checks
-//     if (!email || !password) return c.json({ error: "Email and password are required" });
-//     if (password !== Bun.env.PASSWORD) return c.json({ error: "wrong password" });
-
-//     //tracking id, data store => db
-//     const trackingId = uuid();
-//     try {
-//         await Track.create({ trackingId })
-//         await sendMail(email, trackingId);
-
-//         return c.json({
-//             trackingId: trackingId,
-//             message: "Email sent succesfully"
-//         })
-//     } catch (error) {
-//         console.log(error);
-//         return c.json({ error: "failed to send email" })
-
-//     }
-
-// })
-
-// export default app
 import { Hono } from 'hono';
-import { v4 as uuid } from "uuid";
+import { v4 as uuid } from 'uuid';
 import Track from '../model/track-model';
-import { sendMail } from '../utils/sendMail';
+
+// Create a function to generate the HTML with tracking pixel
+const generateEmailHtml = (targetEmail: string, trackingId: string): string => {
+    const encodedEmail = encodeURIComponent(targetEmail);
+    const trackingUrl = `${process.env.BASE_URL}/track-mail/${trackingId}?email=${encodedEmail}`;
+    return `<div>
+<img src="${trackingUrl}" alt="Tracking Pixel" style="display: none;"/>
+</div>`;
+};
 
 const app = new Hono();
 
 app.post('/send-mail', async (c) => {
-    const { email, password } = await c.req.json();
-    if (!email || !password) return c.json({ error: "Email and password are required" });
-    if (password !== Bun.env.PASSWORD) return c.json({ error: "wrong password" });
+    const { email, targetEmail, } = await c.req.json();
 
+    // Basic checks
+    if (!email || !targetEmail) {
+        return c.json({ error: "Email, password, target email, and message are required" }, 400);
+    }
+    // if (password !== Bun.env.PASSWORD) {
+    //     return c.json({ error: "Wrong password" }, 403);
+    // }
+
+    // Generate tracking ID and store in the database
     const trackingId = uuid();
     try {
-        await Track.create({
-            trackingId,
-            userActions: [{ email, ip: null }]
-        });
-        await sendMail(email, trackingId);
+        await Track.create({ trackingId });
+
+        // Generate HTML with tracking pixel
+        const htmlContent = generateEmailHtml(targetEmail, trackingId);
 
         return c.json({
             trackingId: trackingId,
-            message: "Email sent successfully"
+            html: htmlContent,
+            message: "HTML content generated successfully"
         });
     } catch (error) {
-        console.log(error);
-        return c.json({ error: "failed to send email" });
+        console.error(error);
+        return c.json({ error: "Failed to generate HTML" }, 500);
     }
 });
 
