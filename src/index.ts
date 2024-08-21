@@ -15,6 +15,9 @@ app.route("/track", trackMailRoute);
 app.route("/dashboard", dashBoardRoute);
 app.route("/api", sendMailRoute);
 app.route('/status', getMailStatusRoute)
+app.get("/", async (c) => {
+    return c.json({ msg: "Welcome to the app" });
+})
 
 
 export default app
