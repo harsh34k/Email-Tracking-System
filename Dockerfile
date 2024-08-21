@@ -1,13 +1,20 @@
-FROM node:18
+# Use the official Bun image
+FROM jarredsumner/bun:latest
 
+# Set the working directory inside the container
 WORKDIR /usr/src/app
 
-COPY package*.json ./
+# Copy package files
+COPY package.json bun.lockb ./
 
-RUN npm install
+# Install dependencies using Bun
+RUN bun install
 
+# Copy the rest of your application code
 COPY . .
 
+# Expose the necessary port
 EXPOSE 3000
 
-CMD [ "node", "src/index.js" ]
+# Run the application using Bun
+CMD ["bun", "src/index.ts"]
