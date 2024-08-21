@@ -20,6 +20,7 @@ app.post('/send-mail', async (c) => {
     if (!email || !targetEmail) {
         return c.json({ error: "Email, password, target email, and message are required" }, 400);
     }
+    const userIP = "0.0.0.0";
     // if (password !== Bun.env.PASSWORD) {
     //     return c.json({ error: "Wrong password" }, 403);
     // }
@@ -27,7 +28,7 @@ app.post('/send-mail', async (c) => {
     // Generate tracking ID and store in the database
     const trackingId = uuid();
     try {
-        await Track.create({ trackingId, userActions: [{ email: targetEmail, ip: '' }] });
+        await Track.create({ trackingId, userActions: [{ email: targetEmail, ip: userIP }] });
 
         // Generate HTML with tracking pixel
         const htmlContent = generateEmailHtml(targetEmail, trackingId);
