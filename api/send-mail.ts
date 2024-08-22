@@ -14,7 +14,7 @@ import * as crypto from 'crypto-js';
 // };
 const generateEmailHtml = (targetEmail: string, trackingId: string): string => {
     const token = crypto.SHA256(targetEmail).toString(crypto.enc.Hex);
-    const trackingUrl = `${process.env.BASE_URL}/${trackingId}?email=${encodeURIComponent(targetEmail)}&token=${token}`;
+    const trackingUrl = `${process.env.BASE_URL}/track/track-mail${trackingId}?email=${encodeURIComponent(targetEmail)}&token=${token}`;
     return `<div><img src="${trackingUrl}" alt="Tracking Pixel" style="display: none;"/></div>`;
 };
 
