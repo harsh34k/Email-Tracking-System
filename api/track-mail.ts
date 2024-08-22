@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { getConnInfo } from 'hono/bun';
 import Track from "../model/track-model";
 import { promises as fs } from "fs";
+import * as crypto from 'crypto-js';
 
 const app = new Hono();
 let imageBuffer: Buffer | null = null;
@@ -15,20 +16,64 @@ let imageBuffer: Buffer | null = null;
     }
 })();
 
+// app.get('/track-mail/:id', async (c) => {
+//     const id = c.req.param('id');
+//     const userIP = c.req.raw.headers.get('true-client-ip') || c.req.raw.headers.get('cf-connecting-ip') || getConnInfo(c).remote.address || "0.0.0.0";
+
+//     // Fetch the tracking record from the database
+//     const track = await Track.findOne({ trackingId: id });
+//     if (!track) {
+//         return c.json({ error: "Tracking ID not found" }, 404);
+//     }
+
+//     // Extract email from query parameters
+//     const email = c.req.query('email'); // Assuming email is passed as a query parameter
+
+//     // Update the tracking record if the email and IP are unique
+//     if (email) {
+//         const existingAction = track.userActions.find(action => action.email === email && action.ip === userIP);
+//         if (!existingAction) {
+//             track.userActions.push({ email, ip: userIP });
+//             track.opens++;
+//             await track.save();
+//         }
+//     }
+
+//     // Ensure image buffer is available
+//     if (!imageBuffer) {
+//         return c.json({ error: "Image not available" }, 500);
+//     }
+
+//     // Return the image buffer as the response
+//     return new Response(imageBuffer, {
+//         headers: {
+//             'Content-Type': 'image/jpeg',
+//             'Cache-Control': 'no-cache',
+//             "Content-Length": imageBuffer.length.toString(),
+//         }
+//     });
+// });
 app.get('/track-mail/:id', async (c) => {
-    const id = c.req.param('id');
+    const { id } = c.req.param();
+    const email = c.req.query('email');
+    const token = c.req.query('token');
     const userIP = c.req.raw.headers.get('true-client-ip') || c.req.raw.headers.get('cf-connecting-ip') || getConnInfo(c).remote.address || "0.0.0.0";
 
-    // Fetch the tracking record from the database
+    // Verify that the token matches the hashed email
+    if (!email) {
+        return c.json({ error: "Email is required" }, 400);
+    }
+    const expectedToken = crypto.SHA256(email).toString(crypto.enc.Hex);
+    if (token !== expectedToken) {
+        return c.json({ error: "Invalid token" }, 403);
+    }
+
     const track = await Track.findOne({ trackingId: id });
     if (!track) {
         return c.json({ error: "Tracking ID not found" }, 404);
     }
 
-    // Extract email from query parameters
-    const email = c.req.query('email'); // Assuming email is passed as a query parameter
-
-    // Update the tracking record if the email and IP are unique
+    // Check if this IP and email combination already exists
     if (email) {
         const existingAction = track.userActions.find(action => action.email === email && action.ip === userIP);
         if (!existingAction) {
@@ -38,12 +83,11 @@ app.get('/track-mail/:id', async (c) => {
         }
     }
 
-    // Ensure image buffer is available
+    // Return the image buffer
     if (!imageBuffer) {
         return c.json({ error: "Image not available" }, 500);
     }
 
-    // Return the image buffer as the response
     return new Response(imageBuffer, {
         headers: {
             'Content-Type': 'image/jpeg',
@@ -52,5 +96,6 @@ app.get('/track-mail/:id', async (c) => {
         }
     });
 });
+
 
 export default app;
