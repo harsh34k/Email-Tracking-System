@@ -1,29 +1,13 @@
 import { model, Schema, Document } from "mongoose";
 
-interface IUserAction {
-    email: string;
-    ip: string;
-}
-
 interface ITrack extends Document {
     trackingId: string;
+    senderEmail: string;
+    senderIP: string;
+    receiverEmail: string;
+    receiverIP: string;
     opens: number;
-    userActions: IUserAction[];
 }
-
-const userActionSchema = new Schema<IUserAction>({
-    email: {
-        type: String,
-        required: true,
-        trim: true, // Added trimming to remove accidental whitespace
-        lowercase: true, // Ensure email is stored in lowercase
-    },
-    ip: {
-        type: String,
-        required: true,
-        trim: true, // Added trimming to remove accidental whitespace
-    },
-});
 
 const trackSchema = new Schema<ITrack>({
     trackingId: {
@@ -31,14 +15,32 @@ const trackSchema = new Schema<ITrack>({
         required: true,
         unique: true, // Ensure trackingId is unique in the collection
     },
+    senderEmail: {
+        type: String,
+        required: true,
+        trim: true,
+        lowercase: true, // Ensure email is stored in lowercase
+    },
+    senderIP: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    receiverEmail: {
+        type: String,
+        required: true,
+        trim: true,
+        lowercase: true,
+    },
+    receiverIP: {
+        type: String,
+        default: "0.0.0.0", // Initialized as 0.0.0.0 and updated when the receiver opens the email
+        trim: true,
+    },
     opens: {
         type: Number,
-        default: 0,
-        min: 0, // Ensuring the opens count cannot go below 0
-    },
-    userActions: {
-        type: [userActionSchema], // Embedded schema for user actions
-        default: [], // Default to an empty array to avoid undefined errors
+        default: 0, // Default to 0 and increment each time the receiver opens the email
+        min: 0,
     },
 }, { timestamps: true }); // Adding timestamps for createdAt and updatedAt
 
