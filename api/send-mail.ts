@@ -22,17 +22,8 @@ app.post('/send-mail', async (c) => {
     }
 
     // Capture the sender's IP address from the request headers
-    let senderIP: string;
 
-    try {
-        senderIP = c.req.raw.headers.get('true-client-ip')
-            || c.req.raw.headers.get('cf-connecting-ip')
-            || getConnInfo(c)?.remote?.address
-            || "0.0.0.0";
-    } catch (error) {
-        console.error("Failed to retrieve sender IP:", error);
-        senderIP = "0.0.0.0"; // Fallback IP in case of an error
-    }
+    const senderIP = c.req.raw.headers.get('true-client-ip') || c.req.raw.headers.get('cf-connecting-ip') || getConnInfo(c).remote.address || "0.0.0.0";
 
     // Generate tracking ID and store in the database
     const trackingId = uuid();
