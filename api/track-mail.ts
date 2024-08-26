@@ -157,7 +157,9 @@ app.get('/track-mail/:id', async (c) => {
     }
 
     // Increment the open count only if the receiver's email and IP match the current request
-    if (track.receiverEmail === email && track.receiverIP === userIP) {
+    // if (track.receiverEmail === email && track.receiverIP === userIP) {
+    if (track.senderIP != userIP && track.receiverEmail === email) {
+        console.log("both ip are different so increment");
         track.opens++;
         await track.save();
     }
