@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 import Track from '../model/track-model';
 import * as crypto from 'crypto-js';
 import { getConnInfo } from 'hono/bun';
+const ip = require('ip');
 
 // Function to generate the HTML with tracking pixel
 const generateEmailHtml = (targetEmail: string, trackingId: string): string => {
@@ -14,6 +15,8 @@ const generateEmailHtml = (targetEmail: string, trackingId: string): string => {
 const app = new Hono();
 
 app.post('/send-mail', async (c) => {
+    console.log("Request raw data:", c.req.raw);
+
     const { email, targetEmail } = await c.req.json();
 
     // Basic checks
@@ -22,13 +25,22 @@ app.post('/send-mail', async (c) => {
     }
 
     // Capture the sender's IP address from the request headers
+    let senderIP: string;
 
-    const senderIP = c.req.raw.headers.get('true-client-ip') || c.req.raw.headers.get('cf-connecting-ip') || getConnInfo(c).remote.address || "0.0.0.0";
+    try {
+        senderIP = ip.address(); // Fallback to server's local IP
+    } catch (error) {
+        console.error("Failed to retrieve sender IP:", error);
+        senderIP = "0.0.0.0"; // Fallback IP in case of an error
+    }
+    console.log("Sender IP:", senderIP);
+
+
+    console.log("Sender IP:", senderIP);
 
     // Generate tracking ID and store in the database
     const trackingId = uuid();
     try {
-        // Store sender's and target's information separately
         await Track.create({
             trackingId,
             senderEmail: email,
@@ -47,7 +59,7 @@ app.post('/send-mail', async (c) => {
             message: "HTML content generated successfully"
         });
     } catch (error) {
-        console.error(error);
+        console.error("Failed to store tracking data:", error);
         return c.json({ error: "Failed to generate HTML" }, 500);
     }
 });

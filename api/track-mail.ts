@@ -106,6 +106,7 @@ import { getConnInfo } from 'hono/bun';
 import Track from "../model/track-model";
 import { promises as fs } from "fs";
 import * as crypto from 'crypto-js';
+const ip = require('ip');
 
 const app = new Hono();
 let imageBuffer: Buffer | null = null;
@@ -123,7 +124,11 @@ app.get('/track-mail/:id', async (c) => {
     const { id } = c.req.param();
     const email = c.req.query('email');
     const token = c.req.query('token');
-    const userIP = c.req.raw.headers.get('true-client-ip') || c.req.raw.headers.get('cf-connecting-ip') || getConnInfo(c).remote.address || "0.0.0.0";
+
+    // Capture the user's IP address using headers, connection info, or fallback to server's IP
+    const userIP: string = ip.address(); // Fallback to server's local IP if not available
+    console.log("receivers ip", userIP);
+
 
     // Verify that the token matches the hashed email
     if (!email) {
