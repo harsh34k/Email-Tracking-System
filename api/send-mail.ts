@@ -79,11 +79,13 @@ app.post('/send-mail', async (c) => {
 
     const trackingId = uuid();
     try {
+        // Handle a single email string instead of an array
+        // const singleEmail = Array.isArray(email) ? email[0] : email;
+
         await Track.create({
             trackingId,
-            userActions: [{ email, ip: null }]
         });
-        await sendMail(email, trackingId);
+        await sendMail(email, trackingId); // Pass as string if single email
 
         return c.json({
             trackingId: trackingId,
@@ -94,5 +96,7 @@ app.post('/send-mail', async (c) => {
         return c.json({ error: "failed to send email" });
     }
 });
+
+
 
 export default app;

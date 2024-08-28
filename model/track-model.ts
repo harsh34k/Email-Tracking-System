@@ -50,10 +50,7 @@ import { model, Schema } from "mongoose";
 interface ITrack {
     trackingId: string;
     opens: number;
-    userActions: {
-        email: string;
-        ip: string;
-    }[];
+    userIPs: string[];
 }
 
 const trackSchema = new Schema<ITrack>({
@@ -65,16 +62,10 @@ const trackSchema = new Schema<ITrack>({
         type: Number,
         default: 0
     },
-    userActions: [{
-        email: {
-            type: String,
-            required: true
-        },
-        ip: {
-            type: String,
-            required: true
-        }
-    }]
+    userIPs: {
+        type: [String],
+        required: true
+    }
 
 })
 //might be a error if run on edge case
